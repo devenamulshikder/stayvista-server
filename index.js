@@ -87,7 +87,16 @@ async function run() {
       // check if user already exist in db
       const isExist = await usersCollection.findOne(query);
       if (isExist) {
-        return res.send(isExist);
+        if (user.status === "Requested") {
+          // if existing user try to change his role 
+          const result = await usersCollection.updateOne(query, {
+            $set: { status: user?.status },
+          });
+          return res.send(result);
+        } else {
+          // if existing user login again
+          return res.send(isExist);
+        }
       }
       // save user for the first time
       const options = { upsert: true };
@@ -101,10 +110,10 @@ async function run() {
     });
 
     // get all users data from db
-    app.get('/users', async(req,res)=>{
-      const result = await usersCollection.find().toArray()
-      res.send(result)
-    })
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
 
     // get all rooms from db
     app.get("/rooms", async (req, res) => {
